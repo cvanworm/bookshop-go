@@ -3,13 +3,14 @@ package handlers
 import (
 	"github.com/andey-robins/bookshop-go/db"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type Book struct {
 	Id     int     `json:"id"`
-	Title  string  `json:"title"`
-	Author string  `json:"author"`
-	Price  float32 `json:"price"`
+	Title  string  `json:"title" validate:"required"`
+	Author string  `json:"author" validate:"required"`
+	Price  float32 `json:"price" validate:"price,required"`
 }
 
 func CreateBook(c *gin.Context) {
@@ -19,7 +20,18 @@ func CreateBook(c *gin.Context) {
 		return
 	}
 
-	_, err := db.CreateBook(json.Title, json.Author, json.Price)
+	validate := validator.New()
+	err := validate.Struct(json)
+	if err != nil {
+		// log out this error
+		// return a bad request and a helpful error message
+		// if you wished, you could concat the validation error into this
+		// message to help point your consumer in the right direction.
+		c.JSON(400, gin.H{"error": "failed to validate struct: " + err.Error()})
+		return
+	}
+
+	_, err = db.CreateBook(json.Title, json.Author, json.Price)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
