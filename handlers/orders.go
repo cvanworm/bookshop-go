@@ -9,8 +9,8 @@ import (
 )
 
 type Order struct {
-	CustomerId int  `json:"customerId"`
-	BookId     int  `json:"bookId"`
+	CustomerId int  `json:"customerId" validate:"required"`
+	BookId     int  `json:"bookId" validate:"required"`
 	Shipped    bool `json:"shipped"`
 }
 
@@ -61,9 +61,11 @@ func ShipOrder(c *gin.Context) {
 
 	pid, err := db.GetPOByContents(json.BookId, json.CustomerId)
 	if err != nil {
+		fmt.Println("ERROR")
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+	fmt.Println(pid)
 
 	err = db.ShipPO(pid)
 	if err != nil {

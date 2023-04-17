@@ -1,5 +1,7 @@
 package db
 
+import "fmt"
+
 func CreateCustomer(name, shippingAddr string) (int, error) {
 	database := Connect().Db
 
@@ -19,13 +21,16 @@ func GetCustomerId(name, shippingAddr string) (int, error) {
 		WHERE name = ? and shippingAddress = ?;
 	`, name, shippingAddr)
 	if err != nil {
+		fmt.Println("ONE")
 		return 0, err
 	}
 	defer rows.Close()
 	var cid int
-	err = rows.Scan(&cid)
-	if err != nil {
-		return 0, err
+	for rows.Next() {
+		err = rows.Scan(&cid)
+		if err != nil {
+			return 0, err
+		}
 	}
 	return cid, nil
 }
@@ -44,9 +49,11 @@ func GetCustomerAddress(cid int) (string, error) {
 	defer rows.Close()
 
 	var addr string
-	err = rows.Scan(&addr)
-	if err != nil {
-		return "", err
+	for rows.Next() {
+		err = rows.Scan(&addr)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	return addr, nil
@@ -78,9 +85,11 @@ func CustomerBalance(cid int) (float32, error) {
 	defer rows.Close()
 
 	var balance float32
-	err = rows.Scan(&balance)
-	if err != nil {
-		return 0, err
+	for rows.Next() {
+		err = rows.Scan(&balance)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	return balance, nil

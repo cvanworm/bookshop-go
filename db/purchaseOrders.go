@@ -1,6 +1,8 @@
 package db
 
-import "errors"
+import (
+	"errors"
+)
 
 // the abbreviation PO will be used in place of PurchaseOrder often for brevity
 
@@ -27,9 +29,11 @@ func GetPOByContents(book, customer int) (int, error) {
 	}
 	defer rows.Close()
 	var pid int
-	err = rows.Scan(&pid)
-	if err != nil {
-		return 0, err
+	for rows.Next() {
+		err = rows.Scan(&pid)
+		if err != nil {
+			return 0, err
+		}
 	}
 	return pid, nil
 }
@@ -38,7 +42,7 @@ func IsPOShipped(pid int) (bool, error) {
 	database := Connect().Db
 
 	rows, err := database.Query(`
-		SELECT (shipped) FROM Books
+		SELECT (shipped) FROM PurchaseOrders
 		WHERE id = ?;
 	`, pid)
 	if err != nil {
@@ -46,9 +50,11 @@ func IsPOShipped(pid int) (bool, error) {
 	}
 	defer rows.Close()
 	var shipped int
-	err = rows.Scan(&shipped)
-	if err != nil {
-		return false, err
+	for rows.Next() {
+		err = rows.Scan(&shipped)
+		if err != nil {
+			return false, err
+		}
 	}
 	return shipped == 1, nil
 }
@@ -72,6 +78,5 @@ func ShipPO(pid int) error {
 		SET shipped = 1
 		WHERE id = ?;
 	`, pid)
-
 	return err
 }

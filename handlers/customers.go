@@ -1,15 +1,27 @@
 package handlers
 
 import (
+	"fmt"
+
 	"github.com/andey-robins/bookshop-go/db"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 )
 
 type Customer struct {
 	Id             int     `json:"id"`
-	Name           string  `json:"name"`
-	ShippingAddr   string  `json:"shippingAddr"`
+	Name           string  `json:"name" validate:"required"`
+	ShippingAddr   string  `json:"shippingAddr" validate:"required"`
 	AccountBalance float32 `json:"accountBalance"`
+}
+
+type UpCustomer struct {
+	Id           int    `json:"id" validate:"required"`
+	ShippingAddr string `json:"shippingAddr" validate:"required"`
+}
+
+type CustomerId struct {
+	Id int `json:"id" validate:"required"`
 }
 
 func CreateCustomer(c *gin.Context) {
@@ -19,8 +31,16 @@ func CreateCustomer(c *gin.Context) {
 		return
 	}
 
-	_, err := db.CreateCustomer(json.Name, json.ShippingAddr)
+	validate := validator.New()
+	err := validate.Struct(json)
 	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	_, err = db.CreateCustomer(json.Name, json.ShippingAddr)
+	if err != nil {
+		fmt.Println("FAILED")
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
@@ -29,13 +49,20 @@ func CreateCustomer(c *gin.Context) {
 }
 
 func UpdateCustomerAddress(c *gin.Context) {
-	var json Customer
+	var json UpCustomer
 	if err := c.BindJSON(&json); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err := db.UpdateCustomerAddress(json.Id, json.ShippingAddr)
+	validate := validator.New()
+	err := validate.Struct(json)
+	if err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = db.UpdateCustomerAddress(json.Id, json.ShippingAddr)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -45,8 +72,15 @@ func UpdateCustomerAddress(c *gin.Context) {
 }
 
 func GetCustomerBalance(c *gin.Context) {
-	var json Customer
+	var json CustomerId
 	if err := c.BindJSON(&json); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
+		return
+	}
+
+	validate := validator.New()
+	err := validate.Struct(json)
+	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
