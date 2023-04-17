@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/andey-robins/bookshop-go/db"
+	"github.com/andey-robins/bookshop-go/validate"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type Customer struct {
@@ -31,14 +31,12 @@ func CreateCustomer(c *gin.Context) {
 		return
 	}
 
-	validate := validator.New()
-	err := validate.Struct(json)
-	if err != nil {
+	if err := validate.Validate(json); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	_, err = db.CreateCustomer(json.Name, json.ShippingAddr)
+	_, err := db.CreateCustomer(json.Name, json.ShippingAddr)
 	if err != nil {
 		fmt.Println("FAILED")
 		c.JSON(400, gin.H{"error": err.Error()})
@@ -55,14 +53,12 @@ func UpdateCustomerAddress(c *gin.Context) {
 		return
 	}
 
-	validate := validator.New()
-	err := validate.Struct(json)
-	if err != nil {
+	if err := validate.Validate(json); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	err = db.UpdateCustomerAddress(json.Id, json.ShippingAddr)
+	err := db.UpdateCustomerAddress(json.Id, json.ShippingAddr)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -78,9 +74,7 @@ func GetCustomerBalance(c *gin.Context) {
 		return
 	}
 
-	validate := validator.New()
-	err := validate.Struct(json)
-	if err != nil {
+	if err := validate.Validate(json); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}

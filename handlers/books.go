@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"github.com/andey-robins/bookshop-go/db"
+	"github.com/andey-robins/bookshop-go/validate"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator/v10"
 )
 
 type Book struct {
@@ -25,14 +25,12 @@ func CreateBook(c *gin.Context) {
 		return
 	}
 
-	validate := validator.New()
-	err := validate.Struct(json)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "failed to validate struct: " + err.Error()})
+	if err := validate.Validate(json); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
-	_, err = db.CreateBook(json.Title, json.Author, json.Price)
+	_, err := db.CreateBook(json.Title, json.Author, json.Price)
 	if err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
@@ -48,10 +46,8 @@ func GetPrice(c *gin.Context) {
 		return
 	}
 
-	validate := validator.New()
-	err := validate.Struct(json)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "failed to validate struct: " + err.Error()})
+	if err := validate.Validate(json); err != nil {
+		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
